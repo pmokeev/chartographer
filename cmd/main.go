@@ -23,7 +23,7 @@ func main() {
 		log.Fatalf("Error while init config %s", err.Error())
 	}
 
-	service := services.NewService()
+	service := services.NewService("C:\\Users\\Pavel\\Documents\\GoProjects\\chartographer\\data")
 	chartRouter := routers.NewChartRouter(service)
 	chartServer := server.NewServer()
 
