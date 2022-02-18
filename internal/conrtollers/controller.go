@@ -1,8 +1,15 @@
 package conrtollers
 
-import "pmokeev/chartographer/internal/services"
+import (
+	"github.com/gin-gonic/gin"
+	"pmokeev/chartographer/internal/services"
+)
 
 type ChartographerController interface {
+	CreateBMP(context *gin.Context)
+	UpdateBMP(context *gin.Context)
+	GetPartBMP(context *gin.Context)
+	DeleteBMP(context *gin.Context)
 }
 
 type Controller struct {
