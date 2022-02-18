@@ -36,7 +36,7 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	currentImage.Mux.Lock()
 	chartService.imageMap[chartService.idCounter] = currentImage
 
-	file, err := os.Create(chartService.pathToStorageFolder + "/" + strconv.Itoa(currentImage.ID) + ".png")
+	file, err := os.Create(chartService.pathToStorageFolder + "/" + strconv.Itoa(currentImage.ID) + ".bmp")
 	if err != nil {
 		delete(chartService.imageMap, chartService.idCounter)
 		currentImage.Mux.Unlock()
