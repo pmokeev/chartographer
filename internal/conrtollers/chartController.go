@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"pmokeev/chartographer/internal/services"
+	"pmokeev/chartographer/internal/utils"
 	"strconv"
 )
 
@@ -40,7 +41,6 @@ func (chartController *ChartController) CreateBMP(context *gin.Context) {
 
 	createdID, err := chartController.chartService.CreateBMP(widthInt, heightInt)
 	if err != nil {
-		fmt.Println(err.Error())
 		context.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
@@ -59,5 +59,23 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 }
 
 func (chartController *ChartController) DeleteBMP(context *gin.Context) {
-	fmt.Println("Delete BMP")
+	imageID, err := strconv.Atoi(context.Param("id"))
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	if err = chartController.chartService.DeleteBMP(imageID); err != nil {
+		switch err.(type) {
+		case *utils.RemoveError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		default:
+			fmt.Println(err.Error())
+			context.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	context.AbortWithStatus(http.StatusOK)
 }
