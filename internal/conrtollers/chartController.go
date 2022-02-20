@@ -3,9 +3,9 @@ package conrtollers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/pmokeev/chartographer/internal/services"
+	"github.com/pmokeev/chartographer/internal/utils"
 	"net/http"
-	"pmokeev/chartographer/internal/services"
-	"pmokeev/chartographer/internal/utils"
 	"strconv"
 )
 
@@ -51,7 +51,62 @@ func (chartController *ChartController) CreateBMP(context *gin.Context) {
 }
 
 func (chartController *ChartController) UpdateBMP(context *gin.Context) {
-	fmt.Println("Update BMP")
+	imageID, err := strconv.Atoi(context.Param("id"))
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	xPosition, xPositionOk := context.GetQuery("x")
+	yPosition, yPositionOk := context.GetQuery("y")
+	width, widthOk := context.GetQuery("width")
+	height, heightOk := context.GetQuery("height")
+	if !widthOk || !heightOk || !xPositionOk || !yPositionOk {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	widthInt, err := strconv.Atoi(width)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	heightInt, err := strconv.Atoi(height)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	xPositionInt, err := strconv.Atoi(xPosition)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	yPositionInt, err := strconv.Atoi(yPosition)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	if widthInt <= 0 || heightInt <= 0 || xPositionInt < 0 || yPositionInt < 0 || imageID < 0 {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	receivedImage, _, err := context.Request.FormFile("upload")
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	err = chartController.chartService.UpdateBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt, receivedImage)
+	if err != nil {
+		switch err.(type) {
+		case *utils.RemoveError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		default:
+			context.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	context.AbortWithStatus(http.StatusOK)
 }
 
 func (chartController *ChartController) GetPartBMP(context *gin.Context) {
@@ -71,7 +126,6 @@ func (chartController *ChartController) DeleteBMP(context *gin.Context) {
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		default:
-			fmt.Println(err.Error())
 			context.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}

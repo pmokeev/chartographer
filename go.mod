@@ -1,4 +1,4 @@
-module pmokeev/chartographer
+module github.com/pmokeev/chartographer
 
 go 1.17
 

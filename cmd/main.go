@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
+	server "github.com/pmokeev/chartographer/internal"
+	"github.com/pmokeev/chartographer/internal/routers"
+	"github.com/pmokeev/chartographer/internal/services"
 	"github.com/spf13/viper"
 	"log"
 	"os"
 	"os/signal"
-	server "pmokeev/chartographer/internal"
-	"pmokeev/chartographer/internal/routers"
-	"pmokeev/chartographer/internal/services"
 	"syscall"
 )
 

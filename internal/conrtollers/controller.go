@@ -2,7 +2,7 @@ package conrtollers
 
 import (
 	"github.com/gin-gonic/gin"
-	"pmokeev/chartographer/internal/services"
+	"github.com/pmokeev/chartographer/internal/services"
 )
 
 type ChartographerController interface {

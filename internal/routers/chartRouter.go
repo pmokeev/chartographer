@@ -2,8 +2,8 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"pmokeev/chartographer/internal/conrtollers"
-	"pmokeev/chartographer/internal/services"
+	"github.com/pmokeev/chartographer/internal/conrtollers"
+	"github.com/pmokeev/chartographer/internal/services"
 )
 
 type ChartRouter struct {
