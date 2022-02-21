@@ -4,7 +4,7 @@ import "mime/multipart"
 
 type ChartographerServicer interface {
 	CreateBMP(width, height int) (int, error)
-	UpdateBMP(id, xPosition, yPosition, width, height int, receivedImageHeader multipart.File) error
+	UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage multipart.File) error
 	GetPartBMP(id, xPosition, yPosition, width, height int) error
 	DeleteBMP(id int) error
 }
