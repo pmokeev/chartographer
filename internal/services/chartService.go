@@ -91,10 +91,10 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 		return err
 	}
 
-	for i := xPosition; i <= width; i++ {
-		for j := yPosition; j <= height; j++ {
-			if i <= currentImage.Width && j <= currentImage.Height {
-				changeableOriginalImage.Set(i, j, receivedImageDecoded.At(i, j))
+	for x := xPosition; x <= width; x++ {
+		for y := yPosition; y <= height; y++ {
+			if x <= currentImage.Width && y <= currentImage.Height {
+				changeableOriginalImage.Set(x, y, receivedImageDecoded.At(x-xPosition, y-yPosition))
 			}
 		}
 	}
