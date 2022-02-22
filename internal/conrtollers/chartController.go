@@ -84,7 +84,7 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	if widthInt <= 0 || heightInt <= 0 || xPositionInt < 0 || yPositionInt < 0 || imageID < 0 {
+	if widthInt <= 0 || heightInt <= 0 || imageID < 0 {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}

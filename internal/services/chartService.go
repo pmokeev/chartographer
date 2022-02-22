@@ -58,13 +58,14 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 		mutex.Unlock()
 		return 0, err
 	}
-
 	mutex.Unlock()
+
 	return currentImage.ID, nil
 }
 
 func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage multipart.File) error {
 	var mutex sync.Mutex
+	var currentImage *models.Image
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
 		return &utils.RemoveError{ID: id}
@@ -91,10 +92,10 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 		return err
 	}
 
-	for x := xPosition; x <= width; x++ {
-		for y := yPosition; y <= height; y++ {
-			if x <= currentImage.Width && y <= currentImage.Height {
-				changeableOriginalImage.Set(x, y, receivedImageDecoded.At(x-xPosition, y-yPosition))
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			if x < currentImage.Width && y < currentImage.Height {
+				changeableOriginalImage.Set(x+xPosition, y+yPosition, receivedImageDecoded.At(x, y))
 			}
 		}
 	}
@@ -118,6 +119,7 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 
 func (chartService *ChartService) DeleteBMP(id int) error {
 	var mutex sync.Mutex
+	var currentImage *models.Image
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
 		return &utils.RemoveError{ID: id}
