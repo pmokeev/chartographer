@@ -1,7 +1,6 @@
 package conrtollers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pmokeev/chartographer/internal/services"
 	"github.com/pmokeev/chartographer/internal/utils"
@@ -110,7 +109,58 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 }
 
 func (chartController *ChartController) GetPartBMP(context *gin.Context) {
-	fmt.Println("Get part of BMP")
+	imageID, err := strconv.Atoi(context.Param("id"))
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	xPosition, xPositionOk := context.GetQuery("x")
+	yPosition, yPositionOk := context.GetQuery("y")
+	width, widthOk := context.GetQuery("width")
+	height, heightOk := context.GetQuery("height")
+	if !widthOk || !heightOk || !xPositionOk || !yPositionOk {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	widthInt, err := strconv.Atoi(width)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	heightInt, err := strconv.Atoi(height)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	xPositionInt, err := strconv.Atoi(xPosition)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	yPositionInt, err := strconv.Atoi(yPosition)
+	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	if widthInt <= 0 || heightInt <= 0 || imageID < 0 || widthInt > 5000 || heightInt > 5000 {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	pathToFile, err := chartController.chartService.GetPartBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt)
+	if err != nil {
+		switch err.(type) {
+		case *utils.RemoveError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		default:
+			context.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	context.File(pathToFile)
+	context.AbortWithStatus(http.StatusOK)
 }
 
 func (chartController *ChartController) DeleteBMP(context *gin.Context) {
