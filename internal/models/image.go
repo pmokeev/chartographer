@@ -1,11 +1,15 @@
 package models
 
+import "sync"
+
 type Image struct {
 	ID       int
 	Width    int
 	Height   int
 	Filepath string
 	IsExist  bool
+
+	sync.Mutex
 }
 
 func NewImage(id, width, height int, filepath string, isExist bool) *Image {

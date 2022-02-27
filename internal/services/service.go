@@ -2,6 +2,8 @@ package services
 
 import "mime/multipart"
 
+//go:generate mockgen -source=service.go -destination=../../tests/mocks/mock.go
+
 type ChartographerServicer interface {
 	CreateBMP(width, height int) (int, error)
 	UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage multipart.File) error
