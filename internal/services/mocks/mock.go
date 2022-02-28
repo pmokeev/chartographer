@@ -5,7 +5,6 @@
 package mock_services
 
 import (
-	multipart "mime/multipart"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -79,7 +78,7 @@ func (mr *MockChartographerServicerMockRecorder) GetPartBMP(id, xPosition, yPosi
 }
 
 // UpdateBMP mocks base method.
-func (m *MockChartographerServicer) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage multipart.File) error {
+func (m *MockChartographerServicer) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateBMP", id, xPosition, yPosition, width, height, receivedImage)
 	ret0, _ := ret[0].(error)

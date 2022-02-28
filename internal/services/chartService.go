@@ -7,8 +7,6 @@ import (
 	"golang.org/x/image/bmp"
 	"image"
 	"image/color"
-	"io"
-	"mime/multipart"
 	"os"
 	"strconv"
 )
@@ -59,7 +57,7 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	return currentImage.ID, nil
 }
 
-func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage multipart.File) error {
+func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage []byte) error {
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
 		return &utils.RemoveError{ID: id}
@@ -83,11 +81,7 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	}
 	changeableOriginalImage, _ := originalImage.(*image.RGBA)
 
-	buffer := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buffer, receivedImage); err != nil {
-		return err
-	}
-	receivedImageDecoded, err := bmp.Decode(bytes.NewReader(buffer.Bytes()))
+	receivedImageDecoded, err := bmp.Decode(bytes.NewReader(receivedImage))
 	if err != nil {
 		return err
 	}

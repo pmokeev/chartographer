@@ -1,9 +1,11 @@
 package conrtollers
 
 import (
+	"bytes"
 	"github.com/gin-gonic/gin"
 	"github.com/pmokeev/chartographer/internal/services"
 	"github.com/pmokeev/chartographer/internal/utils"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -92,8 +94,13 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+	buffer := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buffer, receivedImage); err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	err = chartController.chartService.UpdateBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt, buffer.Bytes())
 
-	err = chartController.chartService.UpdateBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt, receivedImage)
 	if err != nil {
 		switch err.(type) {
 		case *utils.RemoveError:

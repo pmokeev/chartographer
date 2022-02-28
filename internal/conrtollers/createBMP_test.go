@@ -1,12 +1,11 @@
-package tests
+package conrtollers
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
-	"github.com/pmokeev/chartographer/internal/conrtollers"
 	"github.com/pmokeev/chartographer/internal/services"
-	mock_services "github.com/pmokeev/chartographer/tests/mocks"
+	"github.com/pmokeev/chartographer/internal/services/mocks"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -154,19 +153,14 @@ func TestHandler_CreateBMP(t *testing.T) {
 			mockChartService := mock_services.NewMockChartographerServicer(c)
 			testCase.mockBehavior(mockChartService, testCase.width, testCase.height)
 			service := &services.Service{ChartographerServicer: mockChartService}
-			controller := &conrtollers.Controller{ChartographerController: conrtollers.NewChartController(service)}
+			controller := &Controller{ChartographerController: NewChartController(service)}
 
-			targetString := "/chartas"
-			widthValue, widthOk := testCase.params["width"]
-			if widthOk {
-				targetString += fmt.Sprintf("?width=%s", widthValue)
+			targetString := "/chartas?"
+			if widthValue, widthOk := testCase.params["width"]; widthOk {
+				targetString += fmt.Sprintf("width=%s&", widthValue)
 			}
 			if heightValue, heightOk := testCase.params["height"]; heightOk {
-				if widthOk {
-					targetString += fmt.Sprintf("&height=%s", heightValue)
-				} else {
-					targetString += fmt.Sprintf("?height=%s", heightValue)
-				}
+				targetString += fmt.Sprintf("height=%s", heightValue)
 			}
 
 			gin.SetMode(gin.TestMode)
