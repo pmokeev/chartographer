@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pmokeev/chartographer/internal/services"
 	"github.com/pmokeev/chartographer/internal/utils"
+	"golang.org/x/image/bmp"
 	"io"
 	"net/http"
 	"strconv"
@@ -154,7 +155,7 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 		return
 	}
 
-	pathToFile, err := chartController.chartService.GetPartBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt)
+	image, err := chartController.chartService.GetPartBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt)
 	if err != nil {
 		switch err.(type) {
 		case *utils.RemoveError:
@@ -166,13 +167,22 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 		}
 	}
 
-	context.File(pathToFile)
-	context.AbortWithStatus(http.StatusOK)
+	context.Header("Content-Type", "image/bmp")
+	context.Stream(func(w io.Writer) bool {
+		context.Status(200)
+		bmp.Encode(w, image)
+		return false
+	})
 }
 
 func (chartController *ChartController) DeleteBMP(context *gin.Context) {
 	imageID, err := strconv.Atoi(context.Param("id"))
 	if err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	if imageID < 0 {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}

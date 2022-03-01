@@ -5,6 +5,7 @@
 package mock_services
 
 import (
+	image "image"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -63,10 +64,10 @@ func (mr *MockChartographerServicerMockRecorder) DeleteBMP(id interface{}) *gomo
 }
 
 // GetPartBMP mocks base method.
-func (m *MockChartographerServicer) GetPartBMP(id, xPosition, yPosition, width, height int) (string, error) {
+func (m *MockChartographerServicer) GetPartBMP(id, xPosition, yPosition, width, height int) (image.Image, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPartBMP", id, xPosition, yPosition, width, height)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(image.Image)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

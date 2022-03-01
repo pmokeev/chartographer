@@ -27,7 +27,7 @@ func NewChartService(pathToStorageFolder string) *ChartService {
 }
 
 func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
-	currentImage := models.NewImage(chartService.idCounter, width, height, chartService.pathToStorageFolder+"/storage/"+strconv.Itoa(chartService.idCounter)+".bmp", true)
+	currentImage := models.NewImage(chartService.idCounter, width, height, chartService.pathToStorageFolder+"/"+strconv.Itoa(chartService.idCounter)+".bmp", true)
 	currentImage.Lock()
 	defer currentImage.Unlock()
 	chartService.imageMap[chartService.idCounter] = currentImage
@@ -109,27 +109,27 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	return nil
 }
 
-func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, height int) (string, error) {
+func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, height int) (image.Image, error) {
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return "", &utils.RemoveError{ID: id}
+		return nil, &utils.RemoveError{ID: id}
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
 	if !currentImage.IsExist {
-		return "", &utils.RemoveError{ID: id}
+		return nil, &utils.RemoveError{ID: id}
 	}
 
 	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	originalImage, err := bmp.Decode(originalImageFile)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if err := originalImageFile.Close(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	upLeft := image.Point{}
@@ -145,21 +145,7 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 		}
 	}
 
-	pathToSavedFile := chartService.pathToStorageFolder + "/download/" + strconv.Itoa(chartService.counterGet) + ".bmp"
-	chartService.counterGet++
-	file, err := os.Create(pathToSavedFile)
-	if err != nil {
-		return "", err
-	}
-	err = bmp.Encode(file, image)
-	if err != nil {
-		return "", err
-	}
-	if err = file.Close(); err != nil {
-		return "", err
-	}
-
-	return pathToSavedFile, nil
+	return image, nil
 }
 
 func (chartService *ChartService) DeleteBMP(id int) error {
