@@ -264,10 +264,10 @@ func TestHandler_UpdateBMP(t *testing.T) {
 			width:     -1,
 			height:    124,
 			params: map[string]string{
-				"id":     "-1",
+				"id":     "0",
 				"x":      "0",
 				"y":      "0",
-				"width":  "124",
+				"width":  "-1",
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
@@ -280,14 +280,71 @@ func TestHandler_UpdateBMP(t *testing.T) {
 			id:        0,
 			xPosition: 0,
 			yPosition: 0,
-			width:     0,
+			width:     124,
 			height:    -1,
 			params: map[string]string{
-				"id":     "-1",
+				"id":     "0",
 				"x":      "0",
 				"y":      "0",
 				"width":  "124",
-				"height": "124",
+				"height": "-1",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: ``,
+		},
+		{
+			testName:  "Negative width and height",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     -1,
+			height:    -1,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "-1",
+				"height": "-1",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: ``,
+		},
+		{
+			testName:  "Negative width and positive height",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     -1,
+			height:    10,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "-1",
+				"height": "10",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: ``,
+		},
+		{
+			testName:  "Positive width and negative height",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     10,
+			height:    -1,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "10",
+				"height": "-1",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
 			},
@@ -375,33 +432,54 @@ func TestHandler_UpdateBMP(t *testing.T) {
 			expectedResponseBody: ``,
 		},
 		{
-			testName:  "Negative width",
+			testName:  "Positive yPosition and negative xPosition",
 			id:        0,
-			xPosition: 10,
+			xPosition: -1,
 			yPosition: 10,
-			width:     -100,
-			height:    0,
+			width:     124,
+			height:    124,
 			params: map[string]string{
-				"id":     "-1",
-				"x":      "0",
-				"y":      "0",
+				"id":     "0",
+				"x":      "-1",
+				"y":      "10",
 				"width":  "124",
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(nil)
 			},
-			expectedStatusCode:   400,
+			expectedStatusCode:   200,
 			expectedResponseBody: ``,
 		},
 		{
-			testName:  "Negative height",
+			testName:  "Negative yPosition and positive xPosition",
 			id:        0,
 			xPosition: 10,
-			yPosition: 10,
-			width:     0,
-			height:    -100,
+			yPosition: -1,
+			width:     124,
+			height:    124,
 			params: map[string]string{
-				"id":     "-1",
+				"id":     "0",
+				"x":      "10",
+				"y":      "-1",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(nil)
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: ``,
+		},
+		{
+			testName:  "ID is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "notInteger",
 				"x":      "0",
 				"y":      "0",
 				"width":  "124",
@@ -507,6 +585,252 @@ func TestHandler_GetPartBMP(t *testing.T) {
 			},
 			expectedStatusCode: 200,
 		},
+		{
+			testName:  "Wrong ID",
+			id:        -1,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "-1",
+				"x":      "0",
+				"y":      "0",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "ID is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "notInteger",
+				"x":      "0",
+				"y":      "0",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "Negative width and positive height",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     -10,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "-10",
+				"height": "124",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "Positive width and negative height",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    -10,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "124",
+				"height": "-10",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "Negative x and y",
+			id:        0,
+			xPosition: -1,
+			yPosition: -1,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "-1",
+				"y":      "-1",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
+				upLeft := image.Point{}
+				lowRight := image.Point{X: width, Y: height}
+				image := image.NewRGBA(image.Rectangle{Min: upLeft, Max: lowRight})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(image, nil)
+			},
+			expectedStatusCode: 200,
+		},
+		{
+			testName:  "Negative x and positive y",
+			id:        0,
+			xPosition: -1,
+			yPosition: 1,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "-1",
+				"y":      "1",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
+				upLeft := image.Point{}
+				lowRight := image.Point{X: width, Y: height}
+				image := image.NewRGBA(image.Rectangle{Min: upLeft, Max: lowRight})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(image, nil)
+			},
+			expectedStatusCode: 200,
+		},
+		{
+			testName:  "Positive x and negative y",
+			id:        0,
+			xPosition: 1,
+			yPosition: -1,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "1",
+				"y":      "-1",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
+				upLeft := image.Point{}
+				lowRight := image.Point{X: width, Y: height}
+				image := image.NewRGBA(image.Rectangle{Min: upLeft, Max: lowRight})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(image, nil)
+			},
+			expectedStatusCode: 200,
+		},
+		{
+			testName:  "Positive x and y",
+			id:        0,
+			xPosition: 1,
+			yPosition: 1,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "1",
+				"y":      "1",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
+				upLeft := image.Point{}
+				lowRight := image.Point{X: width, Y: height}
+				image := image.NewRGBA(image.Rectangle{Min: upLeft, Max: lowRight})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(image, nil)
+			},
+			expectedStatusCode: 200,
+		},
+		{
+			testName:  "Zero x and y",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
+				upLeft := image.Point{}
+				lowRight := image.Point{X: width, Y: height}
+				image := image.NewRGBA(image.Rectangle{Min: upLeft, Max: lowRight})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(image, nil)
+			},
+			expectedStatusCode: 200,
+		},
+		{
+			testName:  "Width is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     0,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "notInteger",
+				"height": "124",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "Height is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    0,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "124",
+				"height": "notInteger",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "x is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "notInteger",
+				"y":      "0",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "y is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     124,
+			height:    124,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "notInteger",
+				"width":  "124",
+				"height": "124",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
 	}
 
 	for _, testCase := range tests {
@@ -569,6 +893,15 @@ func TestHandler_DeleteBMP(t *testing.T) {
 			id:       0,
 			params: map[string]string{
 				"id": "notInteger",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName: "Empty ID",
+			id:       0,
+			params: map[string]string{
+				"id": "",
 			},
 			mockBehavior:       func(service *mock_services.MockChartographerServicer, id int) {},
 			expectedStatusCode: 400,
