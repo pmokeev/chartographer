@@ -1,8 +1,10 @@
+default: test build run
+
 test:
 	go test ./...
 
 build:
-	go build -o cmd\main .\cmd\main.go
+	go build -o .\build\app .\cmd\main.go
 
 run:
-	.\cmd\main
+	.\build\app ${ARGS}

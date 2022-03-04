@@ -36,15 +36,17 @@ func (chartController *ChartController) CreateBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	if widthInt <= 0 || widthInt > 20000 || heightInt <= 0 || heightInt > 50000 {
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
 
 	createdID, err := chartController.chartService.CreateBMP(widthInt, heightInt)
 	if err != nil {
-		context.AbortWithStatus(http.StatusInternalServerError)
-		return
+		switch err.(type) {
+		case *utils.ParamsError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		default:
+			context.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	context.JSON(http.StatusCreated, map[string]int{
@@ -86,10 +88,6 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	if widthInt <= 0 || heightInt <= 0 || imageID < 0 {
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
 	receivedImage, _, err := context.Request.FormFile("upload")
 	if err != nil {
 		context.AbortWithStatus(http.StatusBadRequest)
@@ -104,6 +102,9 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 
 	if err != nil {
 		switch err.(type) {
+		case *utils.ParamsError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
 		case *utils.RemoveError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
@@ -150,14 +151,13 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	if widthInt <= 0 || heightInt <= 0 || imageID < 0 || widthInt > 5000 || heightInt > 5000 {
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
 
 	image, err := chartController.chartService.GetPartBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt)
 	if err != nil {
 		switch err.(type) {
+		case *utils.ParamsError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
 		case *utils.RemoveError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
@@ -182,13 +182,11 @@ func (chartController *ChartController) DeleteBMP(context *gin.Context) {
 		return
 	}
 
-	if imageID < 0 {
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
 	if err = chartController.chartService.DeleteBMP(imageID); err != nil {
 		switch err.(type) {
+		case *utils.ParamsError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
 		case *utils.RemoveError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return

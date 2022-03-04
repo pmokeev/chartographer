@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/color"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -27,7 +28,11 @@ func NewChartService(pathToStorageFolder string) *ChartService {
 }
 
 func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
-	currentImage := models.NewImage(chartService.idCounter, width, height, chartService.pathToStorageFolder+"/"+strconv.Itoa(chartService.idCounter)+".bmp", true)
+	if width <= 0 || width > 20000 || height <= 0 || height > 50000 {
+		return -1, &utils.ParamsError{}
+	}
+
+	currentImage := models.NewImage(chartService.idCounter, width, height, filepath.Join(chartService.pathToStorageFolder, strconv.Itoa(chartService.idCounter)+".bmp"), true)
 	currentImage.Lock()
 	defer currentImage.Unlock()
 	chartService.imageMap[chartService.idCounter] = currentImage
@@ -58,6 +63,10 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 }
 
 func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage []byte) error {
+	if width <= 0 || height <= 0 || id < 0 {
+		return &utils.ParamsError{}
+	}
+
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
 		return &utils.RemoveError{ID: id}
@@ -110,6 +119,10 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 }
 
 func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, height int) (image.Image, error) {
+	if width <= 0 || height <= 0 || id < 0 || width > 5000 || height > 5000 {
+		return nil, &utils.ParamsError{}
+	}
+
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
 		return nil, &utils.RemoveError{ID: id}
@@ -149,6 +162,10 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 }
 
 func (chartService *ChartService) DeleteBMP(id int) error {
+	if id < 0 {
+		return &utils.ParamsError{}
+	}
+
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
 		return &utils.RemoveError{ID: id}

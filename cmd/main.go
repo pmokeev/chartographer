@@ -23,7 +23,7 @@ func main() {
 		log.Fatalf("Error while init config %s", err.Error())
 	}
 
-	service := services.NewService("./data")
+	service := services.NewService(os.Args[1])
 	chartRouter := routers.NewChartRouter(service)
 	chartServer := server.NewServer()
 
