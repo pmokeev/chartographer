@@ -526,7 +526,7 @@ func TestChartService_DeleteBMP(t *testing.T) {
 		},
 	}
 
-	pathToStorageFolder := "../../testData/deleteBMP/"
+	pathToStorageFolder := "../../testData/common/"
 	currentService := NewService(pathToStorageFolder)
 
 	for _, test := range tests {
