@@ -325,3 +325,221 @@ func TestChartService_UpdateBMP_Overlapping(t *testing.T) {
 
 	assert.True(t, isEqualImages(actualImage, expectedImage))
 }
+
+func TestChartService_GetPartBMP(t *testing.T) {
+	tests := []struct {
+		testName  string
+		width     int
+		height    int
+		id        int
+		xPosition int
+		yPosition int
+	}{
+		{
+			testName:  "Zero x and y",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+		},
+		{
+			testName:  "Positive x and y",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: 62,
+			yPosition: 62,
+		},
+		{
+			testName:  "Positive x and zero y",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: 62,
+			yPosition: 0,
+		},
+		{
+			testName:  "Positive y and zero x",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: 0,
+			yPosition: 62,
+		},
+		{
+			testName:  "Negative x and y",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: -62,
+			yPosition: -62,
+		},
+		{
+			testName:  "Negative x and zero y",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: -62,
+			yPosition: 0,
+		},
+		{
+			testName:  "Negative y and zero x",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: 0,
+			yPosition: -62,
+		},
+		{
+			testName:  "Negative x and positive y",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: -62,
+			yPosition: 62,
+		},
+		{
+			testName:  "Negative y and positive x",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: 62,
+			yPosition: -62,
+		},
+		{
+			testName:  "Less x and y then width and height",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: -125,
+			yPosition: -125,
+		},
+		{
+			testName:  "More x and y then width and height",
+			width:     124,
+			height:    124,
+			id:        0,
+			xPosition: 125,
+			yPosition: 125,
+		},
+		{
+			testName:  "Invalid id",
+			width:     124,
+			height:    124,
+			id:        -1,
+			xPosition: 125,
+			yPosition: 125,
+		},
+		{
+			testName:  "Width less than zero ",
+			width:     -1,
+			height:    124,
+			id:        0,
+			xPosition: 125,
+			yPosition: 125,
+		},
+		{
+			testName:  "Height less than zero ",
+			width:     124,
+			height:    -1,
+			id:        0,
+			xPosition: 125,
+			yPosition: 125,
+		},
+		{
+			testName:  "Width is greater than 5000",
+			width:     5001,
+			height:    124,
+			id:        0,
+			xPosition: 125,
+			yPosition: 125,
+		},
+		{
+			testName:  "Height is greater than 5000",
+			width:     124,
+			height:    5001,
+			id:        0,
+			xPosition: 125,
+			yPosition: 125,
+		},
+	}
+
+	pathToStorageFolder := "../../testData/getPartBMP/"
+	currentService := NewService(pathToStorageFolder)
+	_, err := currentService.CreateBMP(124, 124)
+	assert.NoError(t, err)
+
+	data, err := ioutil.ReadFile("../../testData/common/testImage.bmp")
+	assert.NoError(t, err)
+	err = currentService.UpdateBMP(0, 0, 0, 124, 124, data)
+	assert.NoError(t, err)
+
+	for ind, test := range tests {
+		t.Run(test.testName, func(t *testing.T) {
+			actualImage, err := currentService.GetPartBMP(test.id, test.xPosition, test.yPosition, test.width, test.height)
+			if err != nil {
+				assert.True(t, test.width <= 0 || test.height <= 0 || test.id < 0 || test.width > 5000 || test.height > 5000)
+				return
+			}
+			assert.NoError(t, err)
+
+			expectedFile, err := os.OpenFile(filepath.Join(pathToStorageFolder, "correct"+strconv.Itoa(ind)+".bmp"), os.O_RDONLY, 0777)
+			assert.NoError(t, err)
+			expectedImage, err := bmp.Decode(expectedFile)
+			assert.NoError(t, err)
+			err = expectedFile.Close()
+			assert.NoError(t, err)
+
+			assert.True(t, isEqualImages(actualImage, expectedImage))
+		})
+	}
+
+	err = currentService.DeleteBMP(0)
+	assert.NoError(t, err)
+}
+
+func TestChartService_DeleteBMP(t *testing.T) {
+	tests := []struct {
+		testName string
+		width    int
+		height   int
+		id       int
+	}{
+		{
+			testName: "OK",
+			width:    124,
+			height:   124,
+			id:       0,
+		},
+		{
+			testName: "OK",
+			width:    10,
+			height:   10,
+			id:       1,
+		},
+		{
+			testName: "Invalid ID",
+			width:    10,
+			height:   10,
+			id:       -1,
+		},
+	}
+
+	pathToStorageFolder := "../../testData/deleteBMP/"
+	currentService := NewService(pathToStorageFolder)
+
+	for _, test := range tests {
+		t.Run(test.testName, func(t *testing.T) {
+			_, err := currentService.CreateBMP(test.width, test.height)
+			assert.NoError(t, err)
+
+			err = currentService.DeleteBMP(test.id)
+			if err != nil {
+				assert.True(t, test.id < 0)
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
+}
