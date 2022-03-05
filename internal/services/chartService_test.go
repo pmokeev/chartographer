@@ -537,6 +537,7 @@ func TestChartService_DeleteBMP(t *testing.T) {
 			err = currentService.DeleteBMP(test.id)
 			if err != nil {
 				assert.True(t, test.id < 0)
+				_ = currentService.DeleteBMP(2)
 				return
 			}
 			assert.NoError(t, err)
