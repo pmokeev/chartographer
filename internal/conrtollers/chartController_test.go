@@ -271,9 +271,9 @@ func TestHandler_UpdateBMP(t *testing.T) {
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
-				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.ParamsError{})
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.IdError{ID: -1})
 			},
-			expectedStatusCode:   400,
+			expectedStatusCode:   404,
 			expectedResponseBody: ``,
 		},
 		{
@@ -625,9 +625,9 @@ func TestHandler_GetPartBMP(t *testing.T) {
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
-				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &utils.ParamsError{})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &utils.IdError{ID: -1})
 			},
-			expectedStatusCode: 400,
+			expectedStatusCode: 404,
 		},
 		{
 			testName:  "ID is not a integer",
@@ -911,15 +911,15 @@ func TestHandler_DeleteBMP(t *testing.T) {
 			expectedStatusCode: 200,
 		},
 		{
-			testName: "Negative id",
+			testName: "Wrong id",
 			id:       -1,
 			params: map[string]string{
 				"id": "-1",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id int) {
-				service.EXPECT().DeleteBMP(id).Return(&utils.ParamsError{})
+				service.EXPECT().DeleteBMP(id).Return(&utils.IdError{ID: -1})
 			},
-			expectedStatusCode: 400,
+			expectedStatusCode: 404,
 		},
 		{
 			testName: "ID is not a integer",

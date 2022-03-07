@@ -63,18 +63,18 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 }
 
 func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage []byte) error {
-	if width <= 0 || height <= 0 || id < 0 {
+	if width <= 0 || height <= 0 {
 		return &utils.ParamsError{}
 	}
 
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
 	if !currentImage.IsExist {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
 
 	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
@@ -119,18 +119,18 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 }
 
 func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, height int) (image.Image, error) {
-	if width <= 0 || height <= 0 || id < 0 || width > 5000 || height > 5000 {
+	if width <= 0 || height <= 0 || width > 5000 || height > 5000 {
 		return nil, &utils.ParamsError{}
 	}
 
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return nil, &utils.RemoveError{ID: id}
+		return nil, &utils.IdError{ID: id}
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
 	if !currentImage.IsExist {
-		return nil, &utils.RemoveError{ID: id}
+		return nil, &utils.IdError{ID: id}
 	}
 
 	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
@@ -162,18 +162,14 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 }
 
 func (chartService *ChartService) DeleteBMP(id int) error {
-	if id < 0 {
-		return &utils.ParamsError{}
-	}
-
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
 	if !currentImage.IsExist {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
 	if err := os.Remove(currentImage.Filepath); err != nil {
 		return err

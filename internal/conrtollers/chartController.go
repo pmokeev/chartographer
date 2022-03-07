@@ -105,8 +105,8 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 		case *utils.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
-		case *utils.RemoveError:
-			context.AbortWithStatus(http.StatusBadRequest)
+		case *utils.IdError:
+			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
 			context.AbortWithStatus(http.StatusInternalServerError)
@@ -158,8 +158,8 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 		case *utils.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
-		case *utils.RemoveError:
-			context.AbortWithStatus(http.StatusBadRequest)
+		case *utils.IdError:
+			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
 			context.AbortWithStatus(http.StatusInternalServerError)
@@ -187,8 +187,8 @@ func (chartController *ChartController) DeleteBMP(context *gin.Context) {
 		case *utils.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
-		case *utils.RemoveError:
-			context.AbortWithStatus(http.StatusBadRequest)
+		case *utils.IdError:
+			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
 			context.AbortWithStatus(http.StatusInternalServerError)

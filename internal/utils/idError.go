@@ -2,10 +2,10 @@ package utils
 
 import "fmt"
 
-type RemoveError struct {
+type IdError struct {
 	ID int
 }
 
-func (error *RemoveError) Error() string {
+func (error *IdError) Error() string {
 	return fmt.Sprintf("Image with %v id does not exist ", error.ID)
 }
