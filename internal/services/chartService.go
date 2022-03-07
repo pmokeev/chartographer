@@ -77,6 +77,10 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 		return &utils.IdError{ID: id}
 	}
 
+	if utils.Abs(xPosition) >= currentImage.Width || utils.Abs(yPosition) >= currentImage.Height {
+		return &utils.ParamsError{}
+	}
+
 	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
 	if err != nil {
 		return err
@@ -131,6 +135,10 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 	defer currentImage.Unlock()
 	if !currentImage.IsExist {
 		return nil, &utils.IdError{ID: id}
+	}
+
+	if utils.Abs(xPosition) >= currentImage.Width || utils.Abs(yPosition) >= currentImage.Height {
+		return nil, &utils.ParamsError{}
 	}
 
 	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)

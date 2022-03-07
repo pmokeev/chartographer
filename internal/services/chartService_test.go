@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/pmokeev/chartographer/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/image/bmp"
 	"image"
@@ -272,7 +273,7 @@ func TestChartService_UpdateBMP(t *testing.T) {
 
 			err = currentService.UpdateBMP(test.id, test.xPosition, test.yPosition, test.width, test.height, data)
 			if err != nil {
-				assert.True(t, test.width <= 0 || test.height <= 0 || test.id < 0)
+				assert.True(t, test.width <= 0 || test.height <= 0 || test.id < 0 || utils.Abs(test.xPosition) >= test.width || utils.Abs(test.yPosition) >= test.height)
 				return
 			}
 
@@ -309,7 +310,7 @@ func TestChartService_UpdateBMP_Overlapping(t *testing.T) {
 	err = currentService.UpdateBMP(0, 62, 62, 124, 124, data)
 	assert.NoError(t, err)
 
-	expectedFile, err := os.OpenFile(filepath.Join(pathToStorageFolder, "correct12.bmp"), os.O_RDONLY, 0777)
+	expectedFile, err := os.OpenFile(filepath.Join(pathToStorageFolder, "correct9.bmp"), os.O_RDONLY, 0777)
 	assert.NoError(t, err)
 	expectedImage, err := bmp.Decode(expectedFile)
 	assert.NoError(t, err)
@@ -479,7 +480,7 @@ func TestChartService_GetPartBMP(t *testing.T) {
 		t.Run(test.testName, func(t *testing.T) {
 			actualImage, err := currentService.GetPartBMP(test.id, test.xPosition, test.yPosition, test.width, test.height)
 			if err != nil {
-				assert.True(t, test.width <= 0 || test.height <= 0 || test.id < 0 || test.width > 5000 || test.height > 5000)
+				assert.True(t, test.width <= 0 || test.height <= 0 || test.id < 0 || test.width > 5000 || test.height > 5000 || utils.Abs(test.xPosition) >= test.width || utils.Abs(test.yPosition) >= test.height)
 				return
 			}
 			assert.NoError(t, err)
