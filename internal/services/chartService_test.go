@@ -93,7 +93,7 @@ func TestChartService_CreateBMP(t *testing.T) {
 		},
 	}
 
-	pathToStorageFolder := "../../testData/createBMP/"
+	pathToStorageFolder := "../utils/testData/createBMP/"
 	currentService := NewService(pathToStorageFolder)
 
 	for ind, test := range tests {
@@ -259,8 +259,8 @@ func TestChartService_UpdateBMP(t *testing.T) {
 		},
 	}
 
-	pathToStorageFolder := "../../testData/updateBMP/"
-	data, err := ioutil.ReadFile("../../testData/common/testImage.bmp")
+	pathToStorageFolder := "../utils/testData/updateBMP/"
+	data, err := ioutil.ReadFile("../utils/testData/common/testImage.bmp")
 	assert.NoError(t, err)
 
 	for ind, test := range tests {
@@ -297,8 +297,8 @@ func TestChartService_UpdateBMP(t *testing.T) {
 }
 
 func TestChartService_UpdateBMP_Overlapping(t *testing.T) {
-	pathToStorageFolder := "../../testData/updateBMP/"
-	data, err := ioutil.ReadFile("../../testData/common/testImage.bmp")
+	pathToStorageFolder := "../utils/testData/updateBMP/"
+	data, err := ioutil.ReadFile("../utils/testData/common/testImage.bmp")
 	assert.NoError(t, err)
 
 	currentService := NewService(pathToStorageFolder)
@@ -466,12 +466,12 @@ func TestChartService_GetPartBMP(t *testing.T) {
 		},
 	}
 
-	pathToStorageFolder := "../../testData/getPartBMP/"
+	pathToStorageFolder := "../utils/testData/getPartBMP/"
 	currentService := NewService(pathToStorageFolder)
 	_, err := currentService.CreateBMP(124, 124)
 	assert.NoError(t, err)
 
-	data, err := ioutil.ReadFile("../../testData/common/testImage.bmp")
+	data, err := ioutil.ReadFile("../utils/testData/common/testImage.bmp")
 	assert.NoError(t, err)
 	err = currentService.UpdateBMP(0, 0, 0, 124, 124, data)
 	assert.NoError(t, err)
@@ -527,7 +527,7 @@ func TestChartService_DeleteBMP(t *testing.T) {
 		},
 	}
 
-	pathToStorageFolder := "../../testData/common/"
+	pathToStorageFolder := "../utils/testData/common/"
 	currentService := NewService(pathToStorageFolder)
 
 	for _, test := range tests {
