@@ -7,11 +7,9 @@ import (
 	"golang.org/x/image/bmp"
 	"image"
 	"image/color"
-	"io"
-	"mime/multipart"
 	"os"
+	"path/filepath"
 	"strconv"
-	"sync"
 )
 
 type ChartService struct {
@@ -30,10 +28,13 @@ func NewChartService(pathToStorageFolder string) *ChartService {
 }
 
 func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
-	var mutex sync.Mutex
-	currentImage := models.NewImage(chartService.idCounter, width, height, chartService.pathToStorageFolder+"/storage/"+strconv.Itoa(chartService.idCounter)+".bmp", true)
-	mutex.Lock()
-	defer mutex.Unlock()
+	if width <= 0 || width > 20000 || height <= 0 || height > 50000 {
+		return -1, &utils.ParamsError{}
+	}
+
+	currentImage := models.NewImage(chartService.idCounter, width, height, filepath.Join(chartService.pathToStorageFolder, strconv.Itoa(chartService.idCounter)+".bmp"), true)
+	currentImage.Lock()
+	defer currentImage.Unlock()
 	chartService.imageMap[chartService.idCounter] = currentImage
 	chartService.idCounter++
 
@@ -61,28 +62,39 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	return currentImage.ID, nil
 }
 
-func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage multipart.File) error {
-	var mutex sync.Mutex
+func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage []byte) error {
+	if width <= 0 || height <= 0 {
+		return &utils.ParamsError{}
+	}
+
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
+	currentImage.Lock()
+	defer currentImage.Unlock()
 	if !currentImage.IsExist {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
 
-	originalImageFile, _ := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
-	originalImage, _ := bmp.Decode(originalImageFile)
-	originalImageFile.Close()
-	changeableOriginalImage, _ := originalImage.(*image.RGBA)
+	if utils.Abs(xPosition) >= currentImage.Width || utils.Abs(yPosition) >= currentImage.Height {
+		return &utils.ParamsError{}
+	}
 
-	buffer := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buffer, receivedImage); err != nil {
+	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
+	if err != nil {
 		return err
 	}
-	receivedImageDecoded, err := bmp.Decode(bytes.NewReader(buffer.Bytes()))
+	originalImage, err := bmp.Decode(originalImageFile)
+	if err != nil {
+		return err
+	}
+	if err = originalImageFile.Close(); err != nil {
+		return err
+	}
+	changeableOriginalImage, _ := originalImage.(*image.RGBA)
+
+	receivedImageDecoded, err := bmp.Decode(bytes.NewReader(receivedImage))
 	if err != nil {
 		return err
 	}
@@ -95,7 +107,10 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 		}
 	}
 
-	originalImageFile, _ = os.OpenFile(currentImage.Filepath, os.O_WRONLY, 0777)
+	originalImageFile, err = os.OpenFile(currentImage.Filepath, os.O_WRONLY, 0777)
+	if err != nil {
+		return err
+	}
 	err = bmp.Encode(originalImageFile, changeableOriginalImage)
 	if err != nil {
 		return err
@@ -107,22 +122,35 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	return nil
 }
 
-func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, height int) (string, error) {
-	var mutex sync.Mutex
-	currentImage, ok := chartService.imageMap[id]
-	if !ok {
-		return "", &utils.RemoveError{ID: id}
-	}
-	mutex.Lock()
-	defer mutex.Unlock()
-	if !currentImage.IsExist {
-		return "", &utils.RemoveError{ID: id}
+func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, height int) (image.Image, error) {
+	if width <= 0 || height <= 0 || width > 5000 || height > 5000 {
+		return nil, &utils.ParamsError{}
 	}
 
-	originalImageFile, _ := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
-	originalImage, _ := bmp.Decode(originalImageFile)
+	currentImage, ok := chartService.imageMap[id]
+	if !ok {
+		return nil, &utils.IdError{ID: id}
+	}
+	currentImage.Lock()
+	defer currentImage.Unlock()
+	if !currentImage.IsExist {
+		return nil, &utils.IdError{ID: id}
+	}
+
+	if utils.Abs(xPosition) >= currentImage.Width || utils.Abs(yPosition) >= currentImage.Height {
+		return nil, &utils.ParamsError{}
+	}
+
+	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
+	if err != nil {
+		return nil, err
+	}
+	originalImage, err := bmp.Decode(originalImageFile)
+	if err != nil {
+		return nil, err
+	}
 	if err := originalImageFile.Close(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	upLeft := image.Point{}
@@ -138,33 +166,18 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 		}
 	}
 
-	pathToSavedFile := chartService.pathToStorageFolder + "/download/" + strconv.Itoa(chartService.counterGet) + ".bmp"
-	chartService.counterGet++
-	file, err := os.Create(pathToSavedFile)
-	if err != nil {
-		return "", err
-	}
-	err = bmp.Encode(file, image)
-	if err != nil {
-		return "", err
-	}
-	if err = file.Close(); err != nil {
-		return "", err
-	}
-
-	return pathToSavedFile, nil
+	return image, nil
 }
 
 func (chartService *ChartService) DeleteBMP(id int) error {
-	var mutex sync.Mutex
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
+	currentImage.Lock()
+	defer currentImage.Unlock()
 	if !currentImage.IsExist {
-		return &utils.RemoveError{ID: id}
+		return &utils.IdError{ID: id}
 	}
 	if err := os.Remove(currentImage.Filepath); err != nil {
 		return err

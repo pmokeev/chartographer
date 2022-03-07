@@ -1,9 +1,12 @@
 package conrtollers
 
 import (
+	"bytes"
 	"github.com/gin-gonic/gin"
 	"github.com/pmokeev/chartographer/internal/services"
 	"github.com/pmokeev/chartographer/internal/utils"
+	"golang.org/x/image/bmp"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -33,15 +36,17 @@ func (chartController *ChartController) CreateBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	if widthInt <= 0 || widthInt > 20000 || heightInt <= 0 || heightInt > 50000 {
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
 
 	createdID, err := chartController.chartService.CreateBMP(widthInt, heightInt)
 	if err != nil {
-		context.AbortWithStatus(http.StatusInternalServerError)
-		return
+		switch err.(type) {
+		case *utils.ParamsError:
+			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		default:
+			context.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	context.JSON(http.StatusCreated, map[string]int{
@@ -83,21 +88,25 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	if widthInt <= 0 || heightInt <= 0 || imageID < 0 {
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
 	receivedImage, _, err := context.Request.FormFile("upload")
 	if err != nil {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+	buffer := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buffer, receivedImage); err != nil {
+		context.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	err = chartController.chartService.UpdateBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt, buffer.Bytes())
 
-	err = chartController.chartService.UpdateBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt, receivedImage)
 	if err != nil {
 		switch err.(type) {
-		case *utils.RemoveError:
+		case *utils.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		case *utils.IdError:
+			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
 			context.AbortWithStatus(http.StatusInternalServerError)
@@ -142,16 +151,15 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 		context.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	if widthInt <= 0 || heightInt <= 0 || imageID < 0 || widthInt > 5000 || heightInt > 5000 {
-		context.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
 
-	pathToFile, err := chartController.chartService.GetPartBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt)
+	image, err := chartController.chartService.GetPartBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt)
 	if err != nil {
 		switch err.(type) {
-		case *utils.RemoveError:
+		case *utils.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		case *utils.IdError:
+			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
 			context.AbortWithStatus(http.StatusInternalServerError)
@@ -159,8 +167,12 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 		}
 	}
 
-	context.File(pathToFile)
-	context.AbortWithStatus(http.StatusOK)
+	context.Header("Content-Type", "image/bmp")
+	context.Stream(func(w io.Writer) bool {
+		context.Status(200)
+		bmp.Encode(w, image)
+		return false
+	})
 }
 
 func (chartController *ChartController) DeleteBMP(context *gin.Context) {
@@ -172,8 +184,11 @@ func (chartController *ChartController) DeleteBMP(context *gin.Context) {
 
 	if err = chartController.chartService.DeleteBMP(imageID); err != nil {
 		switch err.(type) {
-		case *utils.RemoveError:
+		case *utils.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
+			return
+		case *utils.IdError:
+			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
 			context.AbortWithStatus(http.StatusInternalServerError)
