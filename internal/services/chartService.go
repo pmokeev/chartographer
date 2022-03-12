@@ -7,6 +7,7 @@ import (
 	"golang.org/x/image/bmp"
 	"image"
 	"image/color"
+	"image/draw"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -36,27 +37,18 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	currentImage.Lock()
 	defer currentImage.Unlock()
 
+	chartService.imageMap[chartService.idCounter] = currentImage
+	chartService.idCounter++
+
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
-			img.Set(x, y, color.Black)
-		}
-	}
 
 	file, err := os.Create(currentImage.Filepath)
 	if err != nil {
 		return 0, err
 	}
-	err = bmp.Encode(file, img)
-	if err != nil {
+	if utils.WriteInFile(file, img); err != nil {
 		return 0, err
 	}
-	if err = file.Close(); err != nil {
-		return 0, err
-	}
-
-	chartService.imageMap[chartService.idCounter] = currentImage
-	chartService.idCounter++
 
 	return currentImage.ID, nil
 }
@@ -91,7 +83,8 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	if err = originalImageFile.Close(); err != nil {
 		return err
 	}
-	changeableOriginalImage, _ := originalImage.(*image.RGBA)
+	changeableOriginalImage := image.NewRGBA(originalImage.Bounds())
+	draw.Draw(changeableOriginalImage, originalImage.Bounds(), originalImage, image.Point{}, draw.Over)
 
 	receivedImageDecoded, err := bmp.Decode(bytes.NewReader(receivedImage))
 	if err != nil {
@@ -107,14 +100,7 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	}
 
 	originalImageFile, err = os.OpenFile(currentImage.Filepath, os.O_WRONLY, 0777)
-	if err != nil {
-		return err
-	}
-	err = bmp.Encode(originalImageFile, changeableOriginalImage)
-	if err != nil {
-		return err
-	}
-	if err = originalImageFile.Close(); err != nil {
+	if utils.WriteInFile(originalImageFile, changeableOriginalImage); err != nil {
 		return err
 	}
 

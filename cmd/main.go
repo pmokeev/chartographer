@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
+	server "github.com/pmokeev/chartographer/internal"
 	"github.com/pmokeev/chartographer/internal/routers"
 	"github.com/pmokeev/chartographer/internal/services"
 	"github.com/spf13/viper"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func initConfigFile() error {
@@ -21,8 +25,24 @@ func main() {
 
 	service := services.NewService(os.Args[1])
 	chartRouter := routers.NewChartRouter(service)
+	chartServer := server.NewServer()
 
-	if err := chartRouter.InitChartRouter().Run(":8000"); err != nil {
-		log.Fatalf("Error while running server %s", err.Error())
+	go func() {
+		if err := chartServer.Run(viper.GetString("port"), chartRouter.InitChartRouter()); err != nil {
+			log.Fatalf("Error while running server %s", err.Error())
+		}
+	}()
+
+	log.Print("API started")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+
+	<-quit
+
+	log.Print("API shutdowned")
+
+	if err := chartServer.Shutdown(context.Background()); err != nil {
+		log.Fatalf("Error while shutdowning server %s", err.Error())
 	}
 }
