@@ -41,12 +41,17 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	chartService.idCounter++
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			img.Set(x, y, color.Black)
+		}
+	}
 
 	file, err := os.Create(currentImage.Filepath)
 	if err != nil {
 		return 0, err
 	}
-	if utils.WriteInFile(file, img); err != nil {
+	if err := utils.WriteInFile(file, img); err != nil {
 		return 0, err
 	}
 
@@ -100,7 +105,7 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	}
 
 	originalImageFile, err = os.OpenFile(currentImage.Filepath, os.O_WRONLY, 0777)
-	if utils.WriteInFile(originalImageFile, changeableOriginalImage); err != nil {
+	if err := utils.WriteInFile(originalImageFile, changeableOriginalImage); err != nil {
 		return err
 	}
 
