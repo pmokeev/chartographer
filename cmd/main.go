@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	server "github.com/pmokeev/chartographer/internal"
 	"github.com/pmokeev/chartographer/internal/routers"
 	"github.com/pmokeev/chartographer/internal/services"
@@ -41,8 +40,4 @@ func main() {
 	<-quit
 
 	log.Print("API shutdowned")
-
-	if err := chartServer.Shutdown(context.Background()); err != nil {
-		log.Fatalf("Error while shutdowning server %s", err.Error())
-	}
 }
