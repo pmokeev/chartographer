@@ -35,12 +35,8 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	currentImage := models.NewImage(chartService.idCounter, width, height, filepath.Join(chartService.pathToStorageFolder, strconv.Itoa(chartService.idCounter)+".bmp"), true)
 	currentImage.Lock()
 	defer currentImage.Unlock()
-	chartService.imageMap[chartService.idCounter] = currentImage
-	chartService.idCounter++
 
-	upLeft := image.Point{}
-	lowRight := image.Point{X: width, Y: height}
-	img := image.NewRGBA(image.Rectangle{Min: upLeft, Max: lowRight})
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			img.Set(x, y, color.Black)
@@ -58,6 +54,9 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	if err = file.Close(); err != nil {
 		return 0, err
 	}
+
+	chartService.imageMap[chartService.idCounter] = currentImage
+	chartService.idCounter++
 
 	return currentImage.ID, nil
 }
@@ -153,9 +152,7 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 		return nil, err
 	}
 
-	upLeft := image.Point{}
-	lowRight := image.Point{X: width, Y: height}
-	image := image.NewRGBA(image.Rectangle{Min: upLeft, Max: lowRight})
+	image := image.NewRGBA(image.Rect(0, 0, width, height))
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
 			if x+xPosition >= 0 && x+xPosition < currentImage.Width && y+yPosition >= 0 && y+yPosition < currentImage.Height {
