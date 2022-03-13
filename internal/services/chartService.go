@@ -31,7 +31,7 @@ func NewChartService(pathToStorageFolder string) *ChartService {
 
 func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	if width <= 0 || width > 20000 || height <= 0 || height > 50000 {
-		return -1, &utils.ParamsError{}
+		return -1, &models.ParamsError{}
 	}
 
 	currentImage := models.NewImage(chartService.idCounter, width, height, filepath.Join(chartService.pathToStorageFolder, strconv.Itoa(chartService.idCounter)+".bmp"), true)
@@ -42,6 +42,7 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	chartService.idCounter++
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
+
 	var wg sync.WaitGroup
 	goroutineCount := 10
 	chunkSize := width/goroutineCount + 1
@@ -72,21 +73,22 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 
 func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, height int, receivedImage []byte) error {
 	if width <= 0 || height <= 0 {
-		return &utils.ParamsError{}
+		return &models.ParamsError{}
 	}
 
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return &utils.IdError{ID: id}
+		return &models.IdError{ID: id}
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
+	
 	if !currentImage.IsExist {
-		return &utils.IdError{ID: id}
+		return &models.IdError{ID: id}
 	}
 
 	if utils.Abs(xPosition) >= currentImage.Width || utils.Abs(yPosition) >= currentImage.Height {
-		return &utils.ParamsError{}
+		return &models.ParamsError{}
 	}
 
 	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
@@ -100,6 +102,7 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	if err = originalImageFile.Close(); err != nil {
 		return err
 	}
+
 	changeableOriginalImage := image.NewRGBA(originalImage.Bounds())
 	draw.Draw(changeableOriginalImage, originalImage.Bounds(), originalImage, image.Point{}, draw.Over)
 
@@ -108,13 +111,24 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 		return err
 	}
 
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
-			if x+xPosition >= 0 && x+xPosition < currentImage.Width && y+yPosition >= 0 && y+yPosition < currentImage.Height {
-				changeableOriginalImage.Set(x+xPosition, y+yPosition, receivedImageDecoded.At(x, y))
+	var wg sync.WaitGroup
+	goroutineCount := 10
+	chunkSize := width/goroutineCount + 1
+	for i := 0; i < goroutineCount; i++ {
+		wg.Add(1)
+
+		go func(image *image.RGBA, width, height, chunkSize, chunkNumber, xPosition, yPosition int) {
+			defer wg.Done()
+			for x := chunkSize * chunkNumber; x < utils.Min((chunkNumber+1)*chunkSize, width); x++ {
+				for y := 0; y < height; y++ {
+					if x+xPosition >= 0 && x+xPosition < currentImage.Width && y+yPosition >= 0 && y+yPosition < currentImage.Height {
+						image.Set(x+xPosition, y+yPosition, receivedImageDecoded.At(x, y))
+					}
+				}
 			}
-		}
+		}(changeableOriginalImage, width, height, chunkSize, i, xPosition, yPosition)
 	}
+	wg.Wait()
 
 	originalImageFile, err = os.OpenFile(currentImage.Filepath, os.O_WRONLY, 0777)
 	if err := utils.WriteInFile(originalImageFile, changeableOriginalImage); err != nil {
@@ -126,21 +140,22 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 
 func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, height int) (image.Image, error) {
 	if width <= 0 || height <= 0 || width > 5000 || height > 5000 {
-		return nil, &utils.ParamsError{}
+		return nil, &models.ParamsError{}
 	}
 
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return nil, &utils.IdError{ID: id}
+		return nil, &models.IdError{ID: id}
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
+
 	if !currentImage.IsExist {
-		return nil, &utils.IdError{ID: id}
+		return nil, &models.IdError{ID: id}
 	}
 
 	if utils.Abs(xPosition) >= currentImage.Width || utils.Abs(yPosition) >= currentImage.Height {
-		return nil, &utils.ParamsError{}
+		return nil, &models.ParamsError{}
 	}
 
 	originalImageFile, err := os.OpenFile(currentImage.Filepath, os.O_RDONLY, 0777)
@@ -155,29 +170,41 @@ func (chartService *ChartService) GetPartBMP(id, xPosition, yPosition, width, he
 		return nil, err
 	}
 
-	image := image.NewRGBA(image.Rect(0, 0, width, height))
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
-			if x+xPosition >= 0 && x+xPosition < currentImage.Width && y+yPosition >= 0 && y+yPosition < currentImage.Height {
-				image.Set(x, y, originalImage.At(x+xPosition, y+yPosition))
-			} else {
-				image.Set(x, y, color.Black)
-			}
-		}
-	}
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	return image, nil
+	var wg sync.WaitGroup
+	goroutineCount := 10
+	chunkSize := width/goroutineCount + 1
+	for i := 0; i < goroutineCount; i++ {
+		wg.Add(1)
+
+		go func(image *image.RGBA, width, height, chunkSize, chunkNumber, xPosition, yPosition int) {
+			defer wg.Done()
+			for x := chunkSize * chunkNumber; x < utils.Min((chunkNumber+1)*chunkSize, width); x++ {
+				for y := 0; y < height; y++ {
+					if x+xPosition >= 0 && x+xPosition < currentImage.Width && y+yPosition >= 0 && y+yPosition < currentImage.Height {
+						image.Set(x, y, originalImage.At(x+xPosition, y+yPosition))
+					} else {
+						image.Set(x, y, color.Black)
+					}
+				}
+			}
+		}(img, width, height, chunkSize, i, xPosition, yPosition)
+	}
+	wg.Wait()
+
+	return img, nil
 }
 
 func (chartService *ChartService) DeleteBMP(id int) error {
 	currentImage, ok := chartService.imageMap[id]
 	if !ok {
-		return &utils.IdError{ID: id}
+		return &models.IdError{ID: id}
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
 	if !currentImage.IsExist {
-		return &utils.IdError{ID: id}
+		return &models.IdError{ID: id}
 	}
 	if err := os.Remove(currentImage.Filepath); err != nil {
 		return err

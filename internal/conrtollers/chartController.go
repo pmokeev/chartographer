@@ -3,8 +3,8 @@ package conrtollers
 import (
 	"bytes"
 	"github.com/gin-gonic/gin"
+	"github.com/pmokeev/chartographer/internal/models"
 	"github.com/pmokeev/chartographer/internal/services"
-	"github.com/pmokeev/chartographer/internal/utils"
 	"golang.org/x/image/bmp"
 	"io"
 	"net/http"
@@ -40,7 +40,7 @@ func (chartController *ChartController) CreateBMP(context *gin.Context) {
 	createdID, err := chartController.chartService.CreateBMP(widthInt, heightInt)
 	if err != nil {
 		switch err.(type) {
-		case *utils.ParamsError:
+		case *models.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
 		default:
@@ -102,10 +102,10 @@ func (chartController *ChartController) UpdateBMP(context *gin.Context) {
 
 	if err != nil {
 		switch err.(type) {
-		case *utils.ParamsError:
+		case *models.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
-		case *utils.IdError:
+		case *models.IdError:
 			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
@@ -155,10 +155,10 @@ func (chartController *ChartController) GetPartBMP(context *gin.Context) {
 	image, err := chartController.chartService.GetPartBMP(imageID, xPositionInt, yPositionInt, widthInt, heightInt)
 	if err != nil {
 		switch err.(type) {
-		case *utils.ParamsError:
+		case *models.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
-		case *utils.IdError:
+		case *models.IdError:
 			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:
@@ -184,10 +184,10 @@ func (chartController *ChartController) DeleteBMP(context *gin.Context) {
 
 	if err = chartController.chartService.DeleteBMP(imageID); err != nil {
 		switch err.(type) {
-		case *utils.ParamsError:
+		case *models.ParamsError:
 			context.AbortWithStatus(http.StatusBadRequest)
 			return
-		case *utils.IdError:
+		case *models.IdError:
 			context.AbortWithStatus(http.StatusNotFound)
 			return
 		default:

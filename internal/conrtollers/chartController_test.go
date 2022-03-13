@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/pmokeev/chartographer/internal/models"
 	"github.com/pmokeev/chartographer/internal/services"
 	"github.com/pmokeev/chartographer/internal/services/mocks"
-	"github.com/pmokeev/chartographer/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"image"
 	"mime/multipart"
@@ -45,7 +45,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   800,
 			params:   map[string]string{"width": "20001", "height": "800"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -56,7 +56,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   50001,
 			params:   map[string]string{"width": "800", "height": "50001"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -67,7 +67,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   50001,
 			params:   map[string]string{"width": "20001", "height": "50001"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -78,7 +78,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   800,
 			params:   map[string]string{"width": "-1", "height": "800"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -89,7 +89,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   -1,
 			params:   map[string]string{"width": "800", "height": "-1"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -100,7 +100,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   -1,
 			params:   map[string]string{"width": "-1", "height": "-1"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -111,7 +111,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   1,
 			params:   map[string]string{"width": "0", "height": "1"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -122,7 +122,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   0,
 			params:   map[string]string{"width": "1", "height": "0"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -133,7 +133,7 @@ func TestHandler_CreateBMP(t *testing.T) {
 			height:   0,
 			params:   map[string]string{"width": "0", "height": "0"},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, width, height int) {
-				service.EXPECT().CreateBMP(width, height).Return(0, &utils.ParamsError{})
+				service.EXPECT().CreateBMP(width, height).Return(0, &models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -271,7 +271,7 @@ func TestHandler_UpdateBMP(t *testing.T) {
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
-				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.IdError{ID: -1})
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&models.IdError{ID: -1})
 			},
 			expectedStatusCode:   404,
 			expectedResponseBody: ``,
@@ -291,7 +291,7 @@ func TestHandler_UpdateBMP(t *testing.T) {
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
-				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.ParamsError{})
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -311,7 +311,7 @@ func TestHandler_UpdateBMP(t *testing.T) {
 				"height": "-1",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
-				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.ParamsError{})
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -331,7 +331,7 @@ func TestHandler_UpdateBMP(t *testing.T) {
 				"height": "-1",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
-				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.ParamsError{})
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -351,7 +351,7 @@ func TestHandler_UpdateBMP(t *testing.T) {
 				"height": "10",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
-				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.ParamsError{})
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -371,7 +371,7 @@ func TestHandler_UpdateBMP(t *testing.T) {
 				"height": "-1",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
-				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&utils.ParamsError{})
+				service.EXPECT().UpdateBMP(id, xPosition, yPosition, width, height, receivedImage).Return(&models.ParamsError{})
 			},
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
@@ -625,7 +625,7 @@ func TestHandler_GetPartBMP(t *testing.T) {
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
-				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &utils.IdError{ID: -1})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &models.IdError{ID: -1})
 			},
 			expectedStatusCode: 404,
 		},
@@ -661,7 +661,7 @@ func TestHandler_GetPartBMP(t *testing.T) {
 				"height": "124",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
-				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &utils.ParamsError{})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &models.ParamsError{})
 			},
 			expectedStatusCode: 400,
 		},
@@ -680,7 +680,7 @@ func TestHandler_GetPartBMP(t *testing.T) {
 				"height": "-10",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {
-				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &utils.ParamsError{})
+				service.EXPECT().GetPartBMP(id, xPosition, yPosition, width, height).Return(nil, &models.ParamsError{})
 			},
 			expectedStatusCode: 400,
 		},
@@ -917,7 +917,7 @@ func TestHandler_DeleteBMP(t *testing.T) {
 				"id": "-1",
 			},
 			mockBehavior: func(service *mock_services.MockChartographerServicer, id int) {
-				service.EXPECT().DeleteBMP(id).Return(&utils.IdError{ID: -1})
+				service.EXPECT().DeleteBMP(id).Return(&models.IdError{ID: -1})
 			},
 			expectedStatusCode: 404,
 		},
