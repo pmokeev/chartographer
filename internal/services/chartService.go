@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 )
 
 type ChartService struct {
@@ -41,11 +42,22 @@ func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
 	chartService.idCounter++
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
-			img.Set(x, y, color.Black)
-		}
+	var wg sync.WaitGroup
+	goroutineCount := 10
+	chunkSize := width/goroutineCount + 1
+	for i := 0; i < goroutineCount; i++ {
+		wg.Add(1)
+
+		go func(image *image.RGBA, width, height, chunkSize, chunkNumber int) {
+			defer wg.Done()
+			for x := chunkSize * chunkNumber; x < utils.Min((chunkNumber+1)*chunkSize, width); x++ {
+				for y := 0; y < height; y++ {
+					image.Set(x, y, color.Black)
+				}
+			}
+		}(img, width, height, chunkSize, i)
 	}
+	wg.Wait()
 
 	file, err := os.Create(currentImage.Filepath)
 	if err != nil {

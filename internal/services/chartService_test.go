@@ -62,6 +62,12 @@ func TestChartService_CreateBMP(t *testing.T) {
 			expectedID: 3,
 		},
 		{
+			testName:   "4_id_13x13",
+			width:      13,
+			height:     13,
+			expectedID: 4,
+		},
+		{
 			testName:   "Invalid width",
 			width:      -1,
 			height:     1,
