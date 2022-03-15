@@ -2,16 +2,16 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pmokeev/chartographer/internal/conrtollers"
+	"github.com/pmokeev/chartographer/internal/controllers"
 	"github.com/pmokeev/chartographer/internal/services"
 )
 
 type ChartRouter struct {
-	controller *conrtollers.Controller
+	controller *controllers.Controller
 }
 
 func NewChartRouter(service *services.Service) *ChartRouter {
-	return &ChartRouter{controller: conrtollers.NewController(service)}
+	return &ChartRouter{controller: controllers.NewController(service)}
 }
 
 func (chartRouter *ChartRouter) InitChartRouter() *gin.Engine {

@@ -82,7 +82,7 @@ func (chartService *ChartService) UpdateBMP(id, xPosition, yPosition, width, hei
 	}
 	currentImage.Lock()
 	defer currentImage.Unlock()
-	
+
 	if !currentImage.IsExist {
 		return &models.IdError{ID: id}
 	}

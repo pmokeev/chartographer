@@ -1,4 +1,4 @@
-package conrtollers
+package controllers
 
 import (
 	"bytes"
