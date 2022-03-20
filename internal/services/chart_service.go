@@ -18,15 +18,13 @@ type ChartService struct {
 	imageMap            map[int]*models.Image
 	pathToStorageFolder string
 	idCounter           int
-	counterGet          int
 }
 
 func NewChartService(pathToStorageFolder string) *ChartService {
 	return &ChartService{
 		pathToStorageFolder: pathToStorageFolder,
 		idCounter:           0,
-		imageMap:            make(map[int]*models.Image, 0),
-		counterGet:          0}
+		imageMap:            make(map[int]*models.Image, 0)}
 }
 
 func (chartService *ChartService) CreateBMP(width, height int) (int, error) {
