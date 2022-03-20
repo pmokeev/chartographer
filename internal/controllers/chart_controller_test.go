@@ -156,7 +156,6 @@ func TestHandler_CreateBMP(t *testing.T) {
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
 		},
-
 		{
 			testName:             "Width and height is not a integer",
 			width:                1,
@@ -525,6 +524,25 @@ func TestHandler_UpdateBMP(t *testing.T) {
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
 		},
+		{
+			testName:  "Width and height is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     1,
+			height:    1,
+			params: map[string]string{
+				"id":     "notInteger",
+				"x":      "0",
+				"y":      "0",
+				"width":  "helloWorld",
+				"height": "helloWorld",
+			},
+			mockBehavior: func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int, receivedImage []byte) {
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: ``,
+		},
 	}
 
 	for _, testCase := range tests {
@@ -868,6 +886,23 @@ func TestHandler_GetPartBMP(t *testing.T) {
 				"y":      "notInteger",
 				"width":  "124",
 				"height": "124",
+			},
+			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
+			expectedStatusCode: 400,
+		},
+		{
+			testName:  "Width and height is not a integer",
+			id:        0,
+			xPosition: 0,
+			yPosition: 0,
+			width:     1,
+			height:    1,
+			params: map[string]string{
+				"id":     "0",
+				"x":      "0",
+				"y":      "0",
+				"width":  "helloWorld",
+				"height": "helloWorld",
 			},
 			mockBehavior:       func(service *mock_services.MockChartographerServicer, id, xPosition, yPosition, width, height int) {},
 			expectedStatusCode: 400,
