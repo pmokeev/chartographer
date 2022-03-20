@@ -156,6 +156,16 @@ func TestHandler_CreateBMP(t *testing.T) {
 			expectedStatusCode:   400,
 			expectedResponseBody: ``,
 		},
+
+		{
+			testName:             "Width and height is not a integer",
+			width:                1,
+			height:               1,
+			params:               map[string]string{"width": "helloWorld", "height": "helloWorld"},
+			mockBehavior:         func(service *mock_services.MockChartographerServicer, width, height int) {},
+			expectedStatusCode:   400,
+			expectedResponseBody: ``,
+		},
 		{
 			testName:             "Width is negative, height is not a integer",
 			width:                -1,
